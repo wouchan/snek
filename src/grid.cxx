@@ -27,6 +27,14 @@ void Grid::set_tile_occupation(TileCoords coords, bool occupied) {
     m_occupied_tiles[coords.x][coords.y] = occupied;
 }
 
+void Grid::clear_tile_occupation() {
+    for (i32 x { 0 }; x < Grid::WIDTH; x += 1) {
+        for (i32 y { 0 }; y < Grid::HEIGHT; y += 1) {
+            m_occupied_tiles[x][y] = false;
+        }
+    }
+}
+
 void Grid::spawn_apple(std::mt19937& rng) {
     bool apple_placed { false };
     while (!apple_placed) {

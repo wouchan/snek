@@ -31,6 +31,8 @@ class Grid {
 
     void set_tile_occupation(TileCoords coords, bool occupied);
 
+    void clear_tile_occupation();
+
     void spawn_apple(std::mt19937& rng);
 
     std::optional<TileCoords> get_apple();

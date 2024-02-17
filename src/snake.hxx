@@ -2,9 +2,10 @@
 
 #include "grid.hxx"
 #include "movement.hxx"
+#include <list>
 
 struct Snake {
-    TileCoords position {};
+    std::list<TileCoords> positions {};
     Direction move_direction {};
 
     // Returns true if move succeeded, false otherwise.

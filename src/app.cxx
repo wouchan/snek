@@ -1,17 +1,25 @@
 #include "app.hxx"
 
+#include <chrono>
+
 App::App() {
     m_window = std::make_unique<raylib::Window>(App::SCREEN_WIDTH, App::SCREEN_HEIGHT, "Snek");
-    m_window->SetTargetFPS(10);
+    m_window->SetTargetFPS(60);
 
     m_rng = std::mt19937 { static_cast<std::mt19937::result_type>(
         std::chrono::steady_clock::now().time_since_epoch().count()) };
 }
 
 void App::init_game() {
+    m_move_time = App::STARTING_MOVE_TIME;
+    m_timer = 0;
+
+    m_snake.positions.clear();
+    m_grid.clear_tile_occupation();
+
     TileCoords center { Grid::WIDTH / 2, Grid::HEIGHT / 2 };
 
-    m_snake.position = center;
+    m_snake.positions.emplace_front(center);
     m_grid.set_tile_occupation(center, true);
 }
 
@@ -31,9 +39,18 @@ void App::run() {
 
                 if (!m_grid.get_apple().has_value()) {
                     m_grid.spawn_apple(m_rng);
+                    m_move_time *= App::MOVE_TIME_DECREASE;
+                    TraceLog(LOG_INFO, "Current move time: %f", m_move_time);
                 }
 
-                m_snake.move(m_grid, m_score);
+                m_timer += m_window->GetFrameTime();
+                if (m_timer >= m_move_time) {
+                    m_timer -= m_move_time;
+
+                    if (!m_snake.move(m_grid, m_score)) {
+                        m_state = GameState::PostGame;
+                    }
+                }
             } break;
             case GameState::PostGame: {
                 if (IsKeyPressed(KEY_SPACE)) {
@@ -62,7 +79,7 @@ void App::render() {
         case GameState::PreGame: {
             raylib::DrawText(
                 "Press SPACE to begin",
-                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 12,
                 App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
@@ -70,21 +87,21 @@ void App::render() {
         case GameState::PostGame: {
             raylib::DrawText(
                 "Game over!",
-                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 15,
                 App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE * 6,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
 
             raylib::DrawText(
-                std::format("You scored %d points", m_score),
-                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                std::format("You scored {} points", m_score),
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 15,
                 App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
 
             raylib::DrawText(
                 "Press SPACE to continue",
-                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 15,
                 App::SCREEN_HEIGHT / 2 + Grid::TILE_SIZE * 5,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
@@ -119,15 +136,17 @@ void App::render() {
             }
 
             // Snake
-            raylib::Rectangle snake_rec {
-                static_cast<f32>((m_snake.position.x + 1) * Grid::TILE_SIZE),
-                static_cast<f32>((m_snake.position.y + 3) * Grid::TILE_SIZE),
-                static_cast<f32>(Grid::TILE_SIZE),
-                static_cast<f32>(Grid::TILE_SIZE),
-            };
+            for (const auto& pos : m_snake.positions) {
+                raylib::Rectangle snake_rec {
+                    static_cast<f32>((pos.x + 1) * Grid::TILE_SIZE),
+                    static_cast<f32>((pos.y + 3) * Grid::TILE_SIZE),
+                    static_cast<f32>(Grid::TILE_SIZE),
+                    static_cast<f32>(Grid::TILE_SIZE),
+                };
 
-            snake_rec.Draw(raylib::Color::Green());
-            snake_rec.DrawLines(raylib::Color::DarkGreen(), 3);
+                snake_rec.Draw(raylib::Color::Green());
+                snake_rec.DrawLines(raylib::Color::DarkGreen(), 3);
+            }
         } break;
     }
 
@@ -145,19 +164,31 @@ void App::render() {
 }
 
 void App::poll_input() {
+    Direction new_dir { m_snake.move_direction };
+
     if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
-        m_snake.move_direction = Direction::Up;
+        if (m_snake.move_direction != Direction::Down) {
+            new_dir = Direction::Up;
+        }
     }
 
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        m_snake.move_direction = Direction::Right;
+        if (m_snake.move_direction != Direction::Left) {
+            new_dir = Direction::Right;
+        }
     }
 
     if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) {
-        m_snake.move_direction = Direction::Down;
+        if (m_snake.move_direction != Direction::Up) {
+            new_dir = Direction::Down;
+        }
     }
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-        m_snake.move_direction = Direction::Left;
+        if (m_snake.move_direction != Direction::Right) {
+            new_dir = Direction::Left;
+        }
     }
+
+    m_snake.move_direction = new_dir;
 }
