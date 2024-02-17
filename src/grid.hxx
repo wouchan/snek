@@ -7,6 +7,8 @@
 struct TileCoords {
     isize x {};
     isize y {};
+
+    TileCoords operator+(const TileCoords other) const;
 };
 
 class Grid {

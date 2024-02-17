@@ -23,4 +23,6 @@ class App {
     void run();
 
     void render();
+
+    void poll_input();
 };

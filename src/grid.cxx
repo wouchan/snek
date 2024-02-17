@@ -1,5 +1,9 @@
 #include "grid.hxx"
 
+TileCoords TileCoords::operator+(const TileCoords other) const {
+    return TileCoords { this->x + other.x, this->y + other.y };
+}
+
 bool Grid::is_tile_occupied(TileCoords coords) {
     coords.x %= Grid::WIDTH;
     coords.y %= Grid::HEIGHT;

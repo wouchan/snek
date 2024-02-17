@@ -2,13 +2,15 @@
 
 App::App() {
     m_window = std::make_unique<raylib::Window>(App::SCREEN_WIDTH, App::SCREEN_HEIGHT, "Snek");
-    m_window->SetTargetFPS(60);
+    m_window->SetTargetFPS(10);
 
     m_snake.position = TileCoords { 10, 10 };
 }
 
 void App::run() {
     while (!m_window->ShouldClose()) {
+        App::poll_input();
+        m_snake.move();
         App::render();
     }
 }
@@ -53,4 +55,22 @@ void App::render() {
     grid_frame.DrawLines(raylib::Color::DarkGray(), 3);
 
     m_window->EndDrawing();
+}
+
+void App::poll_input() {
+    if (IsKeyDown(KEY_W)) {
+        m_snake.move_direction = Direction::Up;
+    }
+
+    if (IsKeyDown(KEY_D)) {
+        m_snake.move_direction = Direction::Right;
+    }
+
+    if (IsKeyDown(KEY_S)) {
+        m_snake.move_direction = Direction::Down;
+    }
+
+    if (IsKeyDown(KEY_A)) {
+        m_snake.move_direction = Direction::Left;
+    }
 }
