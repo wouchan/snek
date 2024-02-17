@@ -80,7 +80,7 @@ void App::render() {
             raylib::DrawText(
                 "Press SPACE to begin",
                 App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 12,
-                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
+                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE / 2,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
         } break;
@@ -95,7 +95,7 @@ void App::render() {
             raylib::DrawText(
                 std::format("You scored {} points", m_score),
                 App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 15,
-                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
+                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE / 2,
                 Grid::TILE_SIZE * 2,
                 raylib::Color::DarkGray());
 
