@@ -5,16 +5,20 @@
 #include <raylib-cpp.hpp>
 
 #include "defs.hxx"
+#include "grid.hxx"
 
 class App {
   private:
-    static constexpr u32 SCREEN_WIDTH { 600 };
-    static constexpr u32 SCREEN_HEIGHT { 800 };
+    static constexpr u32 SCREEN_WIDTH { (Grid::WIDTH + 2) * Grid::TILE_SIZE };
+    static constexpr u32 SCREEN_HEIGHT { (Grid::HEIGHT + 4) * Grid::TILE_SIZE };
 
     std::unique_ptr<raylib::Window> m_window {};
+    Grid m_grid {};
 
   public:
     App();
 
     void run();
+
+    void render();
 };
