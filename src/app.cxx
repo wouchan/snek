@@ -4,13 +4,29 @@ App::App() {
     m_window = std::make_unique<raylib::Window>(App::SCREEN_WIDTH, App::SCREEN_HEIGHT, "Snek");
     m_window->SetTargetFPS(10);
 
-    m_snake.position = TileCoords { 10, 10 };
+    m_rng = std::mt19937 { static_cast<std::mt19937::result_type>(
+        std::chrono::steady_clock::now().time_since_epoch().count()) };
+}
+
+void App::init_game() {
+    TileCoords center { Grid::WIDTH / 2, Grid::HEIGHT / 2 };
+
+    m_snake.position = center;
+    m_grid.set_tile_occupation(center, true);
 }
 
 void App::run() {
+    init_game();
+
     while (!m_window->ShouldClose()) {
         App::poll_input();
-        m_snake.move();
+
+        if (!m_grid.get_apple().has_value()) {
+            m_grid.spawn_apple(m_rng);
+        }
+
+        m_snake.move(m_grid);
+
         App::render();
     }
 }
@@ -20,8 +36,8 @@ void App::render() {
     m_window->ClearBackground(raylib::Color::RayWhite());
 
     // Grid
-    for (i32 x {}; x < Grid::WIDTH; x += 1) {
-        for (i32 y {}; y < Grid::HEIGHT; y += 1) {
+    for (i32 x { 0 }; x < Grid::WIDTH; x += 1) {
+        for (i32 y { 0 }; y < Grid::HEIGHT; y += 1) {
             raylib::Rectangle rec {
                 static_cast<f32>((x + 1) * Grid::TILE_SIZE),
                 static_cast<f32>((y + 3) * Grid::TILE_SIZE),
@@ -31,6 +47,20 @@ void App::render() {
 
             rec.DrawLines(raylib::Color::LightGray());
         }
+    }
+
+    // Apple
+    auto apple = m_grid.get_apple();
+    if (apple.has_value()) {
+        raylib::Rectangle apple_rec {
+            static_cast<f32>((apple.value().x + 1) * Grid::TILE_SIZE),
+            static_cast<f32>((apple.value().y + 3) * Grid::TILE_SIZE),
+            static_cast<f32>(Grid::TILE_SIZE),
+            static_cast<f32>(Grid::TILE_SIZE),
+        };
+
+        apple_rec.Draw(raylib::Color::Red());
+        apple_rec.DrawLines(raylib::Color::DarkPurple(), 3);
     }
 
     // Snake
@@ -58,19 +88,19 @@ void App::render() {
 }
 
 void App::poll_input() {
-    if (IsKeyDown(KEY_W)) {
+    if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
         m_snake.move_direction = Direction::Up;
     }
 
-    if (IsKeyDown(KEY_D)) {
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
         m_snake.move_direction = Direction::Right;
     }
 
-    if (IsKeyDown(KEY_S)) {
+    if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) {
         m_snake.move_direction = Direction::Down;
     }
 
-    if (IsKeyDown(KEY_A)) {
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
         m_snake.move_direction = Direction::Left;
     }
 }

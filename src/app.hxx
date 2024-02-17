@@ -1,6 +1,8 @@
 #pragma once
 
+#include <chrono>
 #include <memory>
+#include <random>
 
 #include <raylib-cpp.hpp>
 
@@ -16,11 +18,14 @@ class App {
     std::unique_ptr<raylib::Window> m_window {};
     Grid m_grid {};
     Snake m_snake {};
+    std::mt19937 m_rng {};
 
   public:
     App();
 
     void run();
+
+    void init_game();
 
     void render();
 
