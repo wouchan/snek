@@ -25,7 +25,7 @@ void App::run() {
             m_grid.spawn_apple(m_rng);
         }
 
-        m_snake.move(m_grid);
+        m_snake.move(m_grid, m_score);
 
         App::render();
     }
@@ -34,6 +34,14 @@ void App::run() {
 void App::render() {
     m_window->BeginDrawing();
     m_window->ClearBackground(raylib::Color::RayWhite());
+
+    // Score
+    raylib::DrawText(
+        std::to_string(m_score),
+        App::SCREEN_WIDTH / 2 - 20,
+        12,
+        40,
+        raylib::Color::DarkGray());
 
     // Grid
     for (i32 x { 0 }; x < Grid::WIDTH; x += 1) {

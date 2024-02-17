@@ -16,9 +16,10 @@ class App {
     static constexpr u32 SCREEN_HEIGHT { (Grid::HEIGHT + 4) * Grid::TILE_SIZE };
 
     std::unique_ptr<raylib::Window> m_window {};
-    Grid m_grid {};
-    Snake m_snake {};
     std::mt19937 m_rng {};
+    Snake m_snake {};
+    Grid m_grid {};
+    u32 m_score {};
 
   public:
     App();

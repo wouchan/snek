@@ -8,5 +8,5 @@ struct Snake {
     Direction move_direction {};
 
     // Returns true if move succeeded, false otherwise.
-    bool move(Grid& grid);
+    bool move(Grid& grid, u32& score);
 };

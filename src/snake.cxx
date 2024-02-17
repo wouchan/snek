@@ -1,6 +1,6 @@
 #include "snake.hxx"
 
-bool Snake::move(Grid& grid) {
+bool Snake::move(Grid& grid, u32& score) {
     TileCoords new_pos { position + dir_to_coords(move_direction) };
 
     new_pos.x %= Grid::WIDTH;
@@ -22,6 +22,7 @@ bool Snake::move(Grid& grid) {
     auto apple = grid.get_apple();
     if (apple.has_value()) {
         if (position == apple.value()) {
+            score += 1;
             grid.consume_apple();
         }
     }
