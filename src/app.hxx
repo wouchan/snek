@@ -6,6 +6,7 @@
 
 #include "defs.hxx"
 #include "grid.hxx"
+#include "snake.hxx"
 
 class App {
   private:
@@ -14,6 +15,7 @@ class App {
 
     std::unique_ptr<raylib::Window> m_window {};
     Grid m_grid {};
+    Snake m_snake {};
 
   public:
     App();
