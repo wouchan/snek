@@ -2,7 +2,6 @@
 
 TileCoords dir_to_coords(const Direction dir) {
     switch (dir) {
-        default:
         case Direction::Up: {
             return TileCoords { 0, -1 };
         }

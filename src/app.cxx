@@ -16,16 +16,31 @@ void App::init_game() {
 }
 
 void App::run() {
-    init_game();
-
     while (!m_window->ShouldClose()) {
-        App::poll_input();
+        switch (m_state) {
+            case GameState::PreGame: {
+                m_score = 0;
 
-        if (!m_grid.get_apple().has_value()) {
-            m_grid.spawn_apple(m_rng);
+                if (IsKeyPressed(KEY_SPACE)) {
+                    init_game();
+                    m_state = GameState::InGame;
+                }
+            } break;
+            case GameState::InGame: {
+                App::poll_input();
+
+                if (!m_grid.get_apple().has_value()) {
+                    m_grid.spawn_apple(m_rng);
+                }
+
+                m_snake.move(m_grid, m_score);
+            } break;
+            case GameState::PostGame: {
+                if (IsKeyPressed(KEY_SPACE)) {
+                    m_state = GameState::PreGame;
+                }
+            } break;
         }
-
-        m_snake.move(m_grid, m_score);
 
         App::render();
     }
@@ -38,49 +53,83 @@ void App::render() {
     // Score
     raylib::DrawText(
         std::to_string(m_score),
-        App::SCREEN_WIDTH / 2 - 20,
-        12,
-        40,
+        App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE,
+        Grid::TILE_SIZE / 2,
+        Grid::TILE_SIZE * 2,
         raylib::Color::DarkGray());
 
-    // Grid
-    for (i32 x { 0 }; x < Grid::WIDTH; x += 1) {
-        for (i32 y { 0 }; y < Grid::HEIGHT; y += 1) {
-            raylib::Rectangle rec {
-                static_cast<f32>((x + 1) * Grid::TILE_SIZE),
-                static_cast<f32>((y + 3) * Grid::TILE_SIZE),
+    switch (m_state) {
+        case GameState::PreGame: {
+            raylib::DrawText(
+                "Press SPACE to begin",
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
+                Grid::TILE_SIZE * 2,
+                raylib::Color::DarkGray());
+        } break;
+        case GameState::PostGame: {
+            raylib::DrawText(
+                "Game over!",
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE * 6,
+                Grid::TILE_SIZE * 2,
+                raylib::Color::DarkGray());
+
+            raylib::DrawText(
+                std::format("You scored %d points", m_score),
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_HEIGHT / 2 - Grid::TILE_SIZE,
+                Grid::TILE_SIZE * 2,
+                raylib::Color::DarkGray());
+
+            raylib::DrawText(
+                "Press SPACE to continue",
+                App::SCREEN_WIDTH / 2 - Grid::TILE_SIZE * 10,
+                App::SCREEN_HEIGHT / 2 + Grid::TILE_SIZE * 5,
+                Grid::TILE_SIZE * 2,
+                raylib::Color::DarkGray());
+        } break;
+        case GameState::InGame: {
+            // Grid
+            for (i32 x { 0 }; x < Grid::WIDTH; x += 1) {
+                for (i32 y { 0 }; y < Grid::HEIGHT; y += 1) {
+                    raylib::Rectangle rec {
+                        static_cast<f32>((x + 1) * Grid::TILE_SIZE),
+                        static_cast<f32>((y + 3) * Grid::TILE_SIZE),
+                        static_cast<f32>(Grid::TILE_SIZE),
+                        static_cast<f32>(Grid::TILE_SIZE),
+                    };
+
+                    rec.DrawLines(raylib::Color::LightGray());
+                }
+            }
+
+            // Apple
+            auto apple = m_grid.get_apple();
+            if (apple.has_value()) {
+                raylib::Rectangle apple_rec {
+                    static_cast<f32>((apple.value().x + 1) * Grid::TILE_SIZE),
+                    static_cast<f32>((apple.value().y + 3) * Grid::TILE_SIZE),
+                    static_cast<f32>(Grid::TILE_SIZE),
+                    static_cast<f32>(Grid::TILE_SIZE),
+                };
+
+                apple_rec.Draw(raylib::Color::Red());
+                apple_rec.DrawLines(raylib::Color::DarkPurple(), 3);
+            }
+
+            // Snake
+            raylib::Rectangle snake_rec {
+                static_cast<f32>((m_snake.position.x + 1) * Grid::TILE_SIZE),
+                static_cast<f32>((m_snake.position.y + 3) * Grid::TILE_SIZE),
                 static_cast<f32>(Grid::TILE_SIZE),
                 static_cast<f32>(Grid::TILE_SIZE),
             };
 
-            rec.DrawLines(raylib::Color::LightGray());
-        }
+            snake_rec.Draw(raylib::Color::Green());
+            snake_rec.DrawLines(raylib::Color::DarkGreen(), 3);
+        } break;
     }
-
-    // Apple
-    auto apple = m_grid.get_apple();
-    if (apple.has_value()) {
-        raylib::Rectangle apple_rec {
-            static_cast<f32>((apple.value().x + 1) * Grid::TILE_SIZE),
-            static_cast<f32>((apple.value().y + 3) * Grid::TILE_SIZE),
-            static_cast<f32>(Grid::TILE_SIZE),
-            static_cast<f32>(Grid::TILE_SIZE),
-        };
-
-        apple_rec.Draw(raylib::Color::Red());
-        apple_rec.DrawLines(raylib::Color::DarkPurple(), 3);
-    }
-
-    // Snake
-    raylib::Rectangle snake_rec {
-        static_cast<f32>((m_snake.position.x + 1) * Grid::TILE_SIZE),
-        static_cast<f32>((m_snake.position.y + 3) * Grid::TILE_SIZE),
-        static_cast<f32>(Grid::TILE_SIZE),
-        static_cast<f32>(Grid::TILE_SIZE),
-    };
-
-    snake_rec.Draw(raylib::Color::Green());
-    snake_rec.DrawLines(raylib::Color::DarkGreen(), 3);
 
     // Grid frame
     raylib::Rectangle grid_frame {
